@@ -17,7 +17,6 @@ all:
 	$(CC) $(CHARDFLAGS) $(SOURCEDIR)/util/messages.c $(SOURCEDIR)/mount.c  -o mount
 	$(CC) $(CHARDFLAGS) $(SOURCEDIR)/util/sha256.c   $(SOURCEDIR)/cetty.c  -o cetty
 	$(CC) $(CHARDFLAGS) $(SOURCEDIR)/cfetch.c -o cfetch
-	$(CC) $(CHARDFLAGS) $(SOURCEDIR)/testtime.c -o testtime
 	$(CC) $(CHARDFLAGS) $(SOURCEDIR)/util/messages.c $(SOURCEDIR)/umount.c -o umount
 
 clean:
@@ -32,7 +31,6 @@ install:
 	install -s cetty  $(DESTDIR)$(PREFIX)/bin
 	install -s cfetch $(DESTDIR)$(PREFIX)/bin
 	install -s umount $(DESTDIR)$(PREFIX)/bin
-	install -s testtime $(DESTDIR)$(PREFIX)/bin
 
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/mount
