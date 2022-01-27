@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <util/messages.h>
-#include <qword/mount.h>
+#include <cword/mount.h>
 
 // Command line parsing.
 extern int opterr;
