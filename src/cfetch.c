@@ -6,16 +6,28 @@
 #include <unistd.h>
 #include <pwd.h>
 #include <sys/utsname.h>
-#include <qword/memstats.h>
+#include <cword/memstats.h>
+#include <cword/fb.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
+#include <math.h>
 
-#define BLACK   "\e[40m"      /* Black */
-#define RED     "\e[41m"      /* Red */
-#define GREEN   "\e[42m"      /* Green */
-#define YELLOW  "\e[43m"      /* Yellow */
-#define BLUE    "\e[44m"      /* Blue */
-#define MAGENTA "\e[45m"      /* Magenta */
-#define CYAN    "\e[46m"      /* Cyan */
-#define WHITE   "\e[47m"      /* White */
+#define BLACK           "\e[40m"      /* Black */
+#define RED             "\e[41m"      /* Red */
+#define GREEN           "\e[42m"      /* Green */
+#define YELLOW          "\e[43m"      /* Yellow */
+#define BLUE            "\e[44m"      /* Blue */
+#define MAGENTA         "\e[45m"      /* Magenta */
+#define CYAN            "\e[46m"      /* Cyan */
+#define WHITE           "\e[47m"      /* White */
+#define BRIGHT_BLACK    "\e[1m\e[40m"
+#define BRIGHT_RED      "\e[1m\e[41m"
+#define BRIGHT_GREEN    "\e[1m\e[42m"
+#define BRIGHT_YELLOW   "\e[1m\e[43m"
+#define BRIGHT_BLUE     "\e[1m\e[44m"
+#define BRIGHT_MAGENTA  "\e[1m\e[45m"
+#define BRIGHT_CYAN     "\e[1m\e[46m"
+#define BRIGHT_WHITE    "\e[1m\e[47m"
 
 #define BLACK_CHAR   'N'
 #define CYAN_CHAR    'y'
@@ -91,19 +103,14 @@ int main(void) {
     char* shell = getpwuid(geteuid())->pw_shell;
     removeStringTrailingNewline(shell);
 
-    // TODO: Resolution based on TTY
-    FILE* fp = fopen("/etc/resolution", "r");
-    char resolutionx[16]; // resolution width
-    char resolutiony[16]; // resolution height
-    fgets(resolutionx, 16, fp);
-    fgets(resolutiony, 16, fp);
+    int fd = open("/dev/fb0", O_RDONLY);
 
-    // Strip newlines
-    resolutionx[strcspn(resolutionx, "\n")] = 0;
-    resolutiony[strcspn(resolutiony, "\n")] = 0;
+    struct fb_info fbinfo;
+    ioctl(fd, FB_GETINFO, &fbinfo);
+    close(fd);
 
     char resolution[64];
-    sprintf(resolution, "%sx%s", resolutionx, resolutiony);
+    sprintf(resolution, "%dx%d", fbinfo.xres, fbinfo.yres);
 
     // CPU detection.
     get_cpu_name(cpuname);
@@ -113,6 +120,8 @@ int main(void) {
 
     // Memory detection.
     getmemstats(&mem);
+
+    uint8_t usage = (int)round((double)(mem.used / (1024 * 1024)) / (double)(mem.total / (1024 * 1024)) * 100.0);
 
     // Print the info and logo.
     img_printf(line1, "");
@@ -127,9 +136,10 @@ int main(void) {
     img_printf(lineA, "%sResolution%s: %s", CYAN_FG, RESET, resolution);
     img_printf(lineB, "%sCPU%s: %s", CYAN_FG, RESET, cpuname);
     img_printf(lineC, "%sGPU%s: %s", CYAN_FG, RESET, gpu);
-    img_printf(lineD, "%sMemory%s: %lluMiB/%lluMiB", CYAN_FG, RESET, mem.used / (1024 * 1024), mem.total / (1024 * 1024));
+    img_printf(lineD, "%sMemory%s: %lluMiB/%lluMiB (%d%%)", CYAN_FG, RESET, mem.used / (1024 * 1024), mem.total / (1024 * 1024), usage);
     img_printf(lineE, "");
     img_printf(lineF, "%s   %s   %s   %s   %s   %s   %s   %s   %s", BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE, RESET);
+    img_printf(lineF, "%s   %s   %s   %s   %s   %s   %s   %s   %s", BRIGHT_BLACK, BRIGHT_RED, BRIGHT_GREEN, BRIGHT_YELLOW, BRIGHT_BLUE, BRIGHT_MAGENTA, BRIGHT_CYAN, BRIGHT_WHITE, RESET);
     img_printf(lineG, "");
     img_printf(lineH, "");
     img_printf(lineI, "");
